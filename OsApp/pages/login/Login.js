@@ -1,38 +1,92 @@
-// LoginScreen.js
-import React, { useState, useContext } from 'react';
-import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
-import { AuthContext } from '../../hooks/AuthProvider'
+import React, { useContext } from "react";
+import { View, TextInput, StyleSheet, Text } from "react-native";
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import { AuthContext } from "../../hooks/AuthProvider";
+import { useNavigation } from "@react-navigation/native";
+import GlobalButton from "../../components/Button/GlobalButton";
+import { GlobalStyles } from "../../assets/styles/GlobalStyles";
+
+const loginValidationSchema = yup.object().shape({
+  empresa: yup.string().required('Campo obrigatório'),
+  username: yup.string().required('Campo obrigatório'),
+  password: yup.string().required('Campo obrigatório'),
+});
 
 const LoginScreen = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const navigation = useNavigation();
   const { setLoggedIn } = useContext(AuthContext);
 
-  const handleLogin = () => {
-    if (username === 'admin' && password === 'admin') {
-      setLoggedIn(true);
-    } else {
-      alert('Nome de usuário ou senha incorretos!');
-    }
-  };
+  const formik = useFormik({
+    initialValues: { empresa: '', username: '', password: '' },
+    validationSchema: loginValidationSchema,
+    onSubmit: values => {
+      if (values.username === "admin" && values.password === "admin" && values.empresa === "1234") {
+        setLoggedIn(true);
+        navigation.navigate("Home");
+      } else {
+        alert("Nome de usuário ou senha incorretos!");
+      }
+    },
+  });
 
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="Nome de usuário"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
+        placeholder="Código da empresa"
+        value={formik.values.empresa}
+        onChangeText={formik.handleChange('empresa')}
+        onBlur={formik.handleBlur('empresa')}
+        style={[
+          GlobalStyles.inputGlobal,
+          formik.touched.empresa && formik.errors.empresa ? styles.errorInput : null,
+        ]}
         autoCapitalize="none"
       />
+      {formik.touched.empresa && formik.errors.empresa &&
+        <Text style={styles.errorText}>{formik.errors.empresa}</Text>}
+
+      <View style={styles.spacing} /> 
+
+      <TextInput
+        placeholder="Nome de usuário"
+        value={formik.values.username}
+        onChangeText={formik.handleChange('username')}
+        onBlur={formik.handleBlur('username')}
+        style={[
+          GlobalStyles.inputGlobal,
+          formik.touched.username && formik.errors.username ? styles.errorInput : null,
+        ]}
+        autoCapitalize="none"
+      />
+      {formik.touched.username && formik.errors.username &&
+        <Text style={styles.errorText}>{formik.errors.username}</Text>}
+
+      <View style={styles.spacing} /> 
+
       <TextInput
         placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
+        value={formik.values.password}
+        onChangeText={formik.handleChange('password')}
+        onBlur={formik.handleBlur('password')}
+        style={[
+          GlobalStyles.inputGlobal,
+          formik.touched.password && formik.errors.password ? styles.errorInput : null,
+        ]}
         secureTextEntry
       />
-      <Button title="Entrar" onPress={handleLogin} />
+      {formik.touched.password && formik.errors.password &&
+        <Text style={styles.errorText}>{formik.errors.password}</Text>}
+
+      <View style={styles.spacing} /> 
+
+      <GlobalButton
+        title="Entrar"
+        onPress={formik.handleSubmit}
+        buttonWidth="100%"
+        buttonColor="#007bff"
+        style={{ alignSelf: 'center' }} 
+      />
     </View>
   );
 };
@@ -40,15 +94,21 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 20,
+    paddingTop: 60, 
+    paddingBottom: 60, 
+    backgroundColor: "#fff",
   },
-  input: {
-    height: 40,
-    borderColor: 'gray',
+  spacing: {
+    height: 20, 
+  },
+  errorInput: {
+    borderColor: 'red',
     borderWidth: 1,
-    marginBottom: 20,
-    padding: 10,
+  },
+  errorText: {
+    color: 'red',
   },
 });
 
